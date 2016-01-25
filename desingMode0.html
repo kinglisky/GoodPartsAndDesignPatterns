@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+	<meta charset="UTF-8">
+	<title>javascript语言精粹</title>
+</head>
+<style>
+	* {
+		padding: 0;
+		margin: 0;
+	}
+
+	html {
+		width: 100%;
+		height: 100%;
+	}
+
+	body {
+		width: 95%;
+		margin: 3% auto;
+		font-family: "YouYuan";
+		line-height: 2em;
+		font-size: 14px;
+	}
+
+	h1 {
+		margin: 2% auto;
+	}
+
+	.mode {
+		/*		display: block;*/
+		position: fixed;
+		width: 1000px;
+		height: 600px;
+		top: 50%;
+		left: 50%;
+		margin: -300px 0 0 -500px;
+		border: 5px solid #c4baba;
+		background-color: rgba(255, 255, 255, 0.8);
+		border-radius: 10px;
+		padding: 2%;
+		z-index: 1000;
+	}
+
+	.loadImg {
+		width: 90%;
+		display: block;
+		margin: 2% auto;
+	}
+</style>
+<link rel="stylesheet" href="./tagColoring.css">
+
+<body>
+	<h1>javascript设计模式</h1>
+	<hr>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra1"></pre>
+		<div class="out" id="out1"></div>
+	</div>
+	<script id="code1" class="code">
+		(function () {
+			/*简单单例模式*/
+			/*保证一个类只有一个实例，并提供一个访问它的全局访问点*/
+			var out = document.getElementById('out1');
+			var Singleton = function (name) {
+				this.name = name;
+			}
+			Singleton.prototype.getname = function (out) {
+				out.innerHTML += "this name:" + this.name + "<br>";
+			}
+			Singleton.getInstance = (function () {
+				var instance = null;
+				return function (name) {
+					if (!instance) {
+						instance = new Singleton(name);
+					}
+					return instance;
+				}
+
+			}());
+			var a = Singleton.getInstance('nan');
+			var b = Singleton.getInstance('nan');
+			a.getname(out);
+			b.getname(out);
+			/*不够好，有可耻的new方法，而且使用者必须先知道这个类时单例类*/
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra2"></pre>
+		<div class="out" id="out2"></div>
+	</div>
+	<script id="code2" class="code">
+		(function () {
+			/*javasvript-惰性单例模式---单一原则为*/
+			var out = document.getElementById('out2');
+			/*只负责产生单例结果,适用于只生成一次的事物,具体的单例由fn函数负责*/
+			var getSingle = function (fn) {
+					var result = null;
+					return function () {
+						return result || (result = fn.apply(this, arguments));
+					}
+				}
+				/*单例的创建的方交给具体函数来完成*/
+			var createMode = function () {
+				var mode = document.createElement('div');
+				mode.innerHTML = "这个是弹窗！";
+				mode.className = "mode";
+				mode.id = "mode";
+				mode.style.display = "none";
+				document.body.appendChild(mode);
+				return mode;
+			};
+			var createIframe = function () {
+				var mode = document.createElement('iframe');
+				mode.className = "mode";
+				mode.id = "mode";
+				mode.style.display = "none";
+				document.body.appendChild(mode);
+				return mode;
+			}
+			var createDiv = getSingle(createMode);
+			var createFrame = getSingle(createIframe);
+			out.addEventListener('click', function () {
+				var frame = createFrame();
+				frame.style.display = "block";
+				frame.src = window.location;
+			});
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra3"></pre>
+		<div class="out" id="out3"></div>
+	</div>
+	<script id="code3" class="code">
+		(function () {
+			/*策略模式*/
+			/*缓动算法*/
+			var Tween = {
+				Linear: function (t, b, c, d) {
+					return c * t / d + b;
+				},
+				Quad: {
+					easeIn: function (t, b, c, d) {
+						return c * (t /= d) * t + b;
+					},
+					easeOut: function (t, b, c, d) {
+						return -c * (t /= d) * (t - 2) + b;
+					},
+					easeInOut: function (t, b, c, d) {
+						if ((t /= d / 2) < 1) return c / 2 * t * t + b;
+						return -c / 2 * ((--t) * (t - 2) - 1) + b;
+					}
+				},
+				Cubic: {
+					easeIn: function (t, b, c, d) {
+						return c * (t /= d) * t * t + b;
+					},
+					easeOut: function (t, b, c, d) {
+						return c * ((t = t / d - 1) * t * t + 1) + b;
+					},
+					easeInOut: function (t, b, c, d) {
+						if ((t /= d / 2) < 1) return c / 2 * t * t * t + b;
+						return c / 2 * ((t -= 2) * t * t + 2) + b;
+					}
+				},
+				Quart: {
+					easeIn: function (t, b, c, d) {
+						return c * (t /= d) * t * t * t + b;
+					},
+					easeOut: function (t, b, c, d) {
+						return -c * ((t = t / d - 1) * t * t * t - 1) + b;
+					},
+					easeInOut: function (t, b, c, d) {
+						if ((t /= d / 2) < 1) return c / 2 * t * t * t * t + b;
+						return -c / 2 * ((t -= 2) * t * t * t - 2) + b;
+					}
+				},
+				Quint: {
+					easeIn: function (t, b, c, d) {
+						return c * (t /= d) * t * t * t * t + b;
+					},
+					easeOut: function (t, b, c, d) {
+						return c * ((t = t / d - 1) * t * t * t * t + 1) + b;
+					},
+					easeInOut: function (t, b, c, d) {
+						if ((t /= d / 2) < 1) return c / 2 * t * t * t * t * t + b;
+						return c / 2 * ((t -= 2) * t * t * t * t + 2) + b;
+					}
+				},
+				Sine: {
+					easeIn: function (t, b, c, d) {
+						return -c * Math.cos(t / d * (Math.PI / 2)) + c + b;
+					},
+					easeOut: function (t, b, c, d) {
+						return c * Math.sin(t / d * (Math.PI / 2)) + b;
+					},
+					easeInOut: function (t, b, c, d) {
+						return -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b;
+					}
+				},
+				Expo: {
+					easeIn: function (t, b, c, d) {
+						return (t == 0) ? b : c * Math.pow(2, 10 * (t / d - 1)) + b;
+					},
+					easeOut: function (t, b, c, d) {
+						return (t == d) ? b + c : c * (-Math.pow(2, -10 * t / d) + 1) + b;
+					},
+					easeInOut: function (t, b, c, d) {
+						if (t == 0) return b;
+						if (t == d) return b + c;
+						if ((t /= d / 2) < 1) return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
+						return c / 2 * (-Math.pow(2, -10 * --t) + 2) + b;
+					}
+				},
+				Circ: {
+					easeIn: function (t, b, c, d) {
+						return -c * (Math.sqrt(1 - (t /= d) * t) - 1) + b;
+					},
+					easeOut: function (t, b, c, d) {
+						return c * Math.sqrt(1 - (t = t / d - 1) * t) + b;
+					},
+					easeInOut: function (t, b, c, d) {
+						if ((t /= d / 2) < 1) return -c / 2 * (Math.sqrt(1 - t * t) - 1) + b;
+						return c / 2 * (Math.sqrt(1 - (t -= 2) * t) + 1) + b;
+					}
+				},
+				Elastic: {
+					easeIn: function (t, b, c, d, a, p) {
+						if (t == 0) return b;
+						if ((t /= d) == 1) return b + c;
+						if (!p) p = d * .3;
+						if (!a || a < Math.abs(c)) {
+							a = c;
+							var s = p / 4;
+						} else var s = p / (2 * Math.PI) * Math.asin(c / a);
+						return -(a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)) + b;
+					},
+					easeOut: function (t, b, c, d, a, p) {
+						if (t == 0) return b;
+						if ((t /= d) == 1) return b + c;
+						if (!p) p = d * .3;
+						if (!a || a < Math.abs(c)) {
+							a = c;
+							var s = p / 4;
+						} else var s = p / (2 * Math.PI) * Math.asin(c / a);
+						return (a * Math.pow(2, -10 * t) * Math.sin((t * d - s) * (2 * Math.PI) / p) + c + b);
+					},
+					easeInOut: function (t, b, c, d, a, p) {
+						if (t == 0) return b;
+						if ((t /= d / 2) == 2) return b + c;
+						if (!p) p = d * (.3 * 1.5);
+						if (!a || a < Math.abs(c)) {
+							a = c;
+							var s = p / 4;
+						} else var s = p / (2 * Math.PI) * Math.asin(c / a);
+						if (t < 1) return -.5 * (a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)) + b;
+						return a * Math.pow(2, -10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p) * .5 + c + b;
+					}
+				},
+				Back: {
+					easeIn: function (t, b, c, d, s) {
+						if (s == undefined) s = 1.70158;
+						return c * (t /= d) * t * ((s + 1) * t - s) + b;
+					},
+					easeOut: function (t, b, c, d, s) {
+						if (s == undefined) s = 1.70158;
+						return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
+					},
+					easeInOut: function (t, b, c, d, s) {
+						if (s == undefined) s = 1.70158;
+						if ((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b;
+						return c / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2) + b;
+					}
+				},
+				Bounce: {
+					easeIn: function (t, b, c, d) {
+						return c - Tween.Bounce.easeOut(d - t, 0, c, d) + b;
+					},
+					easeOut: function (t, b, c, d) {
+						if ((t /= d) < (1 / 2.75)) {
+							return c * (7.5625 * t * t) + b;
+						} else if (t < (2 / 2.75)) {
+							return c * (7.5625 * (t -= (1.5 / 2.75)) * t + .75) + b;
+						} else if (t < (2.5 / 2.75)) {
+							return c * (7.5625 * (t -= (2.25 / 2.75)) * t + .9375) + b;
+						} else {
+							return c * (7.5625 * (t -= (2.625 / 2.75)) * t + .984375) + b;
+						}
+					},
+					easeInOut: function (t, b, c, d) {
+						if (t < d / 2) return Tween.Bounce.easeIn(t * 2, 0, c, d) * .5 + b;
+						else return Tween.Bounce.easeOut(t * 2 - d, 0, c, d) * .5 + c * .5 + b;
+					}
+				}
+			};
+			var Animate = function (dom) {
+				this.dom = dom;
+				this.startTime = 0;
+				this.startPos = 0;
+				this.endPos = 0;
+				this.propertyName = null;
+				this.easing = null;
+				this.duration = null;
+			}
+			Animate.prototype.start = function (propertyName, endPos, duration, easing) {
+				this.startTime = +new Date();
+				this.startPos = this.dom.getBoundingClientRect()[propertyName];
+				this.propertyName = propertyName;
+				this.endPos = endPos;
+				this.duration = duration;
+				this.easing = easing;
+				var self = this;
+				var timer = setInterval(function () {
+					if (self.step() === false) {
+						clearInterval(timer);
+					}
+				}, 20);
+			}
+			Animate.prototype.step = function () {
+				var t = +new Date();
+				if (t >= this.startTime + this.duration) {
+					this.update(this.endPos);
+					return false;
+				}
+				var pos = this.easing(t - this.startTime, this.startPos, this.endPos - this.startPos, this.duration);
+				this.update(pos);
+			}
+			Animate.prototype.update = function (pos) {
+				this.dom.style[this.propertyName] = pos + "px";
+			};
+			var out = document.getElementById('out3');
+			out.addEventListener('click', function () {
+				out.style.position = "absolute";
+				out.style.zIndex = 1000;
+				out.style.left = "1000px";
+				out.innerHTML = "am in move";
+				var animateDiv = new Animate(out);
+				animateDiv.start('left', 0, 5000, Tween.Expo.easeInOut);
+			});
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra4"></pre>
+		<div class="out" id="out4"></div>
+	</div>
+	<script id="code4" class="code">
+		(function () {
+			/*策略模式----表单验证*/
+			/*策略对象*/
+			var strategies = {
+				isNoEmpty: function (value, err) {
+					if (value === "") {
+						return err;
+					}
+				},
+				minLength: function (value, length, err) {
+					if (value.length < length) {
+						return err;
+					}
+				},
+				isMobile: function (value, err) {
+					if (!/^1[3|5|8][0-9]{9}$/.test(value)) {
+						return err;
+					}
+				}
+			};
+			/*策略使用者*/
+			var Validator = function () {
+				this.cache = [];
+			}
+			Validator.prototype.add = function (dom, rules) {
+				var self = this;
+				for (var i = 0, rule; rule = rules[i++];) {
+					(function (rule) {
+						/*分割校验规则与参数*/
+						var strategyAry = rule.strategy.split(':');
+						var errorMsg = rule.err;
+						self.cache.push(function () {
+							/*弹出的是规则*/
+							var strategy = strategyAry.shift();
+							strategyAry.unshift(dom.value);
+							strategyAry.push(errorMsg);
+							return strategies[strategy].apply(dom, strategyAry);
+						});
+					}(rule));
+				}
+			};
+			Validator.prototype.start = function () {
+				for (var i = 0, validatorFunc; validatorFunc = this.cache[i++];) {
+					var err = validatorFunc();
+					//					alert(err);
+					if (err) {
+						return err;
+					}
+				}
+			}
+
+
+			var out = document.getElementById('out4');
+			out.value = out.innerHTML = "this is test";
+			var validator = new Validator();
+			/*这里检测顺序时按照添加得规则顺序*/
+			validator.add(out, [{
+				strategy: 'isMobile',
+				err: "不是手机号!"
+			}, {
+				strategy: 'minLength:20',
+				err: "文本长度太短了!"
+			}]);
+			out.innerHTML = validator.start();
+
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra5"></pre>
+		<div class="out" id="out5"></div>
+	</div>
+	<script id="code5" class="code">
+		(function () {
+			/*代理模式*/
+			/*虚拟代理实现图片的加载*/
+			/*真正重要的实体方法，其独立也能运行*/
+			var myImage = (function () {
+				var out = document.getElementById('out5');
+				var imgNode = document.createElement('img');
+				imgNode.className = "loadImg";
+				out.appendChild(imgNode);
+				return {
+					setSrc: function (src) {
+						imgNode.src = src;
+					}
+				};
+			}());
+			/*被委托的方法，这是一个代理对象，代理在接口行为和本体是一致即使直接使用本体也是一样的*/
+			var proxyImge = (function () {
+				var img = new Image();
+				img.onload = function () {
+					myImage.setSrc(this.src);
+				}
+				return {
+					setSrc: function (src) {
+						myImage.setSrc("img/yu.jpg");
+						img.src = src;
+					}
+				}
+			}());
+			proxyImge.setSrc("img/008.jpg");
+
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra6"></pre>
+		<div class="out" id="out6">
+			<input type="checkbox" id="1" value="1">
+			<input type="checkbox" id="2" value="2">
+			<input type="checkbox" id="3" value="3">
+			<input type="checkbox" id="4" value="4">
+			<input type="checkbox" id="5" value="5">
+			<input type="checkbox" id="6" value="6">
+			<input type="checkbox" id="7" value="7">
+			<input type="checkbox" id="8" value="8">
+			<input type="checkbox" id="9" value="9">
+			<input type="checkbox" id="10" value="10">
+			<input type="checkbox" id="11" value="11">
+			<input type="checkbox" id="12" value="12">
+			<input type="checkbox" id="13" value="13">
+			<input type="checkbox" id="14" value="14">
+			<input type="checkbox" id="15" value="15">
+			<input type="checkbox" id="16" value="16">
+			<input type="checkbox" id="17" value="17">
+			<input type="checkbox" id="18" value="18">
+			<input type="checkbox" id="19" value="19">
+			<input type="checkbox" id="20" value="20">
+			<span id="put"></span>
+		</div>
+	</div>
+	<script id="code6" class="code">
+		(function () {
+			/*虚拟代理合并http请求*/
+			var out = document.getElementById('out6'),
+				put = document.getElementById('put');
+			var synRequest = function (req) {
+				put.innerHTML = "the request is:" + req;
+			}
+			var poxySynRequest = (function () {
+				var cache = [],
+					timer;
+				return function (id) {
+					cache.push(id);
+					if (timer) {
+						return;
+					}
+					timer = setTimeout(function () {
+						synRequest(cache.join(','));
+						clearTimeout(timer);
+						timer = null;
+						cache.length = 0;
+					}, 4000);
+				}
+			}());
+			out.addEventListener('click', function (event) {
+				var that = event.target;
+				if (that.type === "checkbox" && that.checked === true) {
+					poxySynRequest(that.value);
+				}
+			});
+
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra7"></pre>
+		<div class="out" id="out7"></div>
+	</div>
+	<script id="code7" class="code">
+		/*这里栗子比较特殊，因为返回的miniconsole是全局的对象，可以用命名空间搞定*/
+		(function () {
+			/*虚拟代理---惰性加载*/
+			/*这里将miniConsole设置为全局的变量，
+			否则会引起浏览器重复引用miniConsole对象自身，浏览器当机*/
+			window.miniConsole = (function () {
+				var chche = [];
+				var handler = function (event) {
+					if (event.keyCode === 113) {
+						var script = document.createElement('script');
+						script.onload = function () {
+							for (var i = 0, fn; fn = chche[i++];) {
+								fn();
+							}
+						}
+						script.src = 'miniConsole.js';
+						document.getElementsByTagName('head')[0].appendChild(script);
+						document.body.removeEventListener('keydown', handler, false);
+					}
+				};
+				document.body.addEventListener('keydown', handler, false);
+				return {
+					log: function () {
+						var args = arguments;
+						chche.push(function () {
+							/*这里引用的外部加载覆盖过的miniConsole对象*/
+							return miniConsole.log.apply(this.miniConsole, args);
+						});
+						console.log(chche);
+					}
+				};
+			}());
+			miniConsole.log("fuck");
+			miniConsole.log("you");
+			/*外部miniConsole文件*/
+			/*miniConsole = {
+				log: function () {
+					document.getElementById('out7').innerHTML += Array.prototype.join.call(arguments) + "<br>";
+				}
+			}*/
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra8"></pre>
+		<div class="out" id="out8"></div>
+	</div>
+	<script id="code8" class="code">
+		(function () {
+			/*代理模式----函数缓存*/
+			var createProxyFactory = function (fn) {
+				var cache = {};
+				return function () {
+					var args = Array.prototype.join.call(arguments, ',');
+					if (args in cache) {
+						return cache[args];
+					}
+					return cache[args] = fn.apply(this, arguments);
+				}
+
+			};
+			var sum = function () {
+				var s = 0;
+				for (var i = 0, len = arguments.length; i < len; i++) {
+					s += arguments[i];
+				}
+				return s;
+			};
+			var msum = createProxyFactory(sum);
+			var out = document.getElementById('out8');
+			out.innerHTML += msum(1, 2, 3) + "<br>";
+			out.innerHTML += msum(1, 2, 3) + "<br>";
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra9"></pre>
+		<div class="out" id="out9"></div>
+	</div>
+	<script id="code9" class="code">
+		(function () {
+			/*迭代模式---迭代器*/
+			/*内部迭代器*/
+			var each = function (arr, callback) {
+				for (var i = 0, len = arr.length; i < len; i++) {
+					if (callback.call(arr[i], i, arr[i]) === false) {
+						break;
+					}
+				}
+			}
+			var out = document.getElementById('out9');
+			each([2, 2, 3], function (i, item) {
+				out.innerHTML += "index:" + i + " value:" + item + "<br/>";
+				if (i === 1) {
+					return false;
+				}
+			});
+			/*外部迭代器*/
+			var iterator = function (obj) {
+				var current = 0;
+				var next = function () {
+					current += 1;
+				};
+				var isDone = function () {
+					return current >= obj.length;
+				};
+				var getCurtItem = function () {
+					return obj[current]
+				};
+				return {
+					next: next,
+					isDone: isDone,
+					getCurrItem: getCurtItem
+				}
+			};
+			var out = document.getElementById('out9');
+			var compare = function (iterator1, iterator2) {
+				while (!iterator1.isDone() && !iterator2.isDone()) {
+					if (iterator1.getCurrItem() !== iterator2.getCurrItem()) {
+						out.innerHTML = "数组不相等";
+						return;
+					}
+					iterator1.next();
+					iterator2.next();
+				}
+				out.innerHTML = "数组相等！"
+			};
+			var iterator1 = iterator([1, 2, 3, 5]);
+			var iterator2 = iterator([1, 2, 3, 4]);
+			compare(iterator1, iterator2);
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra10"></pre>
+		<div class="out" id="out10"></div>
+	</div>
+	<script id="code10" class="code">
+		(function () {
+			/*观察者模式*/
+			/*自定义事件，全局event事件*/
+			var Event = (function () {
+				var clientsList = {},
+					listen,
+					trigger,
+					remove;
+				listen = function (eType, fn) {
+					if (!clientsList[eType]) {
+						clientsList[eType] = [];
+					}
+					clientsList[eType].push(fn);
+				};
+				trigger = function () {
+					var eType = Array.prototype.shift.call(arguments),
+						fns = clientsList[eType];
+					if (!fns || fns.length === 0) {
+						return false;
+					}
+					for (var i = 0, fn; fn = fns[i++];) {
+						fn.apply(this, arguments);
+					}
+				};
+				remove = function (eType, fn) {
+					var fns = clientsList[eType];
+					if (!fns) {
+						return false;
+					}
+					if (!fn) {
+						fns && (fns.length = 0);
+					} else {
+						for (var len = fns.length - 1; len >= 0; len--) {
+							var _fn = fns[len];
+							if (_fn === fn) {
+								fns.splice(len, 1);
+							}
+						}
+					}
+				};
+				return {
+					listen: listen,
+					trigger: trigger,
+					remove: remove
+				};
+			}());
+			var out = document.getElementById('out10');
+			/*事件的监听*/
+			Event.listen("test", function (msg) {
+				out.innerHTML += "this is msg:" + msg + "<br>";
+			});
+			Event.listen("one", function (msg) {
+				out.innerHTML += "this is msg:" + msg + "<br>";
+			});
+			/*事件的移除*/
+			Event.remove('one');
+			/*事件触发*/
+			Event.trigger('test', "fuck you");
+			Event.trigger('one', "fuck you");
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra11"></pre>
+		<div class="out" id="out11"></div>
+	</div>
+	<script id="code11" class="code">
+		(function () {
+			/*事件的命名空间与延迟绑定*/
+			var Event = (function () {
+				var _listen,
+					_listenOffline,
+					_remove,
+					_removeOffline,
+					_trigger,
+					_triggerOffline,
+					_returnDefault,
+					namespaceList,
+					addEventCache,
+					isUseNS;
+				/*命名空间用于储存事件命名空间与其的事件列表*/
+				namespaceList = {
+					default: {}
+				};
+				/*为命名空间添加事件列表*/
+				addEventCache = function () {
+					var obj = {
+						onlinelist: {},
+						offlinelist: {}
+					};
+					return obj;
+
+				};
+				/*当前命名空间引用，默认为default*/
+				isUseNS = namespaceList.default = addEventCache();
+				/*监听，移除，触发的正常版与延迟版*/
+				_listen = function (cache, key, fn) {
+					if (!cache[key]) {
+						cache[key] = [];
+					}
+					cache[key].push(fn);
+				};
+				_listenOffline = function (cache, key, fn) {
+					var argsList = cache[key],
+						args;
+					while (args = argsList.shift()) {
+						fn.apply(this, args);
+					}
+				};
+				_remove = function (cache, key, fn) {
+					var fns = cache[key];
+					if (!fns) {
+						return false;
+					}
+					if (!fn) {
+						fns && (fns.length = 0);
+					} else {
+						for (var l = fns.length - 1; l >= 0; l--) {
+							var _fn = fns[l];
+							if (_fn === fn) {
+								fns.splice(l, 1);
+							}
+						}
+					}
+				};
+				_removeOffline = function (cache, key) {
+					var fns = cache[key];
+					if (!fns) {
+						return false;
+					}
+					fns && (fns.length = 0);
+
+				}
+				_trigger = function () {
+					var cache = Array.prototype.shift.call(arguments),
+						key = Array.prototype.shift.call(arguments),
+						args = arguments;
+					var fns = cache[key];
+					if (!fns || fns.legth === 0) {
+						return false;
+					}
+					for (var i = 0, fn; fn = fns[i++];) {
+						fn.apply(this, args);
+					}
+				};
+				_triggerOffline = function (cache, key, args) {
+					if (!cache[key]) {
+						cache[key] = [];
+					}
+					cache[key].push(args);
+				};
+				/*用于归还默认命名空间*/
+				_returnDefault = function () {
+					if (isUseNS !== namespaceList.default) {
+						isUseNS = namespaceList.default;
+					}
+
+				}
+				var E = {
+					useNS: function (ns) {
+						if (!namespaceList[ns]) {
+							namespaceList[ns] = addEventCache();
+						}
+						isUseNS = namespaceList[ns];
+						return E;
+					},
+					listen: function (key, fn) {
+						/*监听事件时先判断是否有已经能够触发的事件在离线列表中
+						有的话，遍历离线的参数列表，传给当前调用函数执行。
+						离线列表为空，直接推到监听队列*/
+						if (isUseNS.offlinelist[key] && (isUseNS.offlinelist[key].length > 0)) {
+							_listenOffline(isUseNS.offlinelist, key, fn);
+						} else {
+							_listen(isUseNS.onlinelist, key, fn);
+						}
+						_returnDefault();
+					},
+					remove: function (key, fn) {
+						/*移除事件监听，离线的事件移除是移除对应key的所有事件，实际移除的函数参数数组(可改进)。*/
+						_remove(isUseNS.onlinelist, key, fn);
+						_removeOffline(isUseNS.offlinelist, key);
+						_returnDefault();
+
+					},
+					trigger: function () {
+						/*触发时先从函数监听列表找要触发的事件，监听列表为空的话，
+						则将相应事件的参数存进离线参数列表中等待，延迟的函数执行*/
+						var key = Array.prototype.shift.call(arguments);
+						if (!isUseNS.onlinelist[key] || isUseNS.onlinelist[key].length === 0) {
+							_triggerOffline(isUseNS.offlinelist, key, arguments);
+						} else {
+							/*将参数从新变成数组*/
+							Array.prototype.unshift.call(arguments, key);
+							Array.prototype.unshift.call(arguments, isUseNS.onlinelist);
+							_trigger.apply(this, arguments);
+						}
+						_returnDefault();
+					}
+
+				}
+				return E;
+			}());
+			var out = document.getElementById('out11');
+			Event.useNS("hehe").listen('test', function (data) {
+				out.innerHTML += data + "<br>";
+			});
+			Event.useNS('hehe').trigger("test", "fuck you");
+			/*Event.useNS("one").trigger('delay', 'this is delay load!');
+			Event.useNS("one").trigger('huhu', 'this is delay load huhu!');
+			Event.useNS("one").remove('delay');
+			Event.useNS("one").listen('delay', function (data) {
+				out.innerHTML += data + "<br>";
+			});
+			Event.useNS("one").listen('huhu', function (data) {
+				out.innerHTML += data + "<br>";
+			});*/
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra12"></pre>
+		<div class="out" id="out12">
+		</div>
+	</div>
+	<script id="code12" class="code">
+		(function () {
+			/*命令模式*/
+			/*模拟游戏的撤销与重做*/
+			var out = document.getElementById('out12');
+			var Ryu = {
+				attack: function () {
+					out.innerHTML += "攻击--<br>";
+				},
+				defense: function () {
+					out.innerHTML += "防御--<br>";
+				},
+				jump: function () {
+					out.innerHTML += "跳跃--<br>";
+				},
+				crouch: function () {
+					out.innerHTML += "下蹲--<br>";
+				}
+			};
+			var commands = {
+				"87": "jump",
+				"83": "crouch",
+				"65": "defense",
+				"68": "attack"
+			};
+			var mackCommand = function (receiver, state) {
+				var havaNoCom = function () {
+					out.innerHTML += "mo command...<br>"
+				}
+				return function () {
+					var run = receiver[state] || havaNoCom;
+					run();
+				}
+			};
+			var commandStack = [];
+			document.onkeydown = function (event) {
+				var code = event.keyCode;
+				if ((code) >> 0 === 82) {
+					var command;
+					out.innerHTML = "replay.......<br>"
+					setTimeout(function () {
+						while (command = commandStack.shift()) {
+							command();
+						}
+					}, 1000);
+
+				} else {
+					var command = mackCommand(Ryu, commands[code]);
+					if (command) {
+						command();
+						commandStack.push(command);
+					}
+				}
+
+			};
+
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra13"></pre>
+		<div class="out" id="out13"></div>
+	</div>
+	<script id="code13" class="code">
+		(function () {
+			/*组合模式*/
+			/*多层次宏命令*/
+			/*它们树节点与叶节点都尊选相同的接口，用execute触发*/
+			var out = document.getElementById('out13');
+			var MacroCommand = function () {
+				return {
+					commandsList: [],
+					add: function (command) {
+						this.commandsList.push(command);
+					},
+					execute: function () {
+						for (var i = 0, command; command = this.commandsList[i++];) {
+							command.execute();
+						}
+					}
+				};
+			};
+			var openAcCommand = {
+				execute: function () {
+					out.innerHTML += "打开空调" + "<br>";
+				}
+			};
+			var openTvCommand = {
+				execute: function () {
+					out.innerHTML += "打开电视" + "<br>";
+				}
+			};
+			var openSoundCommand = {
+				execute: function () {
+					out.innerHTML += "打开音响" + "<br>";
+				}
+			};
+			var cmd = MacroCommand();
+			var cmd1 = MacroCommand();
+			var cmd2 = MacroCommand();
+			cmd.add(openAcCommand);
+			/*添加子节点的命令集*/
+			cmd1.add(openTvCommand);
+			cmd1.add(openSoundCommand);
+			var closeDoorCommand = {
+				execute: function () {
+					out.innerHTML += "关门" + "<br>";
+				}
+			};
+			var opPcCommand = {
+				execute: function () {
+					out.innerHTML += "打开电脑" + "<br>";
+				}
+			};
+			var opQQCommand = {
+				execute: function () {
+					out.innerHTML += "登录QQ";
+				}
+			};
+			/*添加子节点的命令集*/
+			cmd2.add(closeDoorCommand);
+			cmd2.add(opPcCommand);
+			cmd2.add(opQQCommand);
+			/*将子节点添加进父级*/
+			cmd.add(cmd1);
+			cmd.add(cmd2);
+			/*宏命令执行*/
+			cmd.execute();
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra14"></pre>
+		<div class="out" id="out14"></div>
+	</div>
+	<script id="code14" class="code">
+		(function () {
+			/*组合模式用例--文件夹扫描*/
+			/*组合模式最重要的保持命令与命令集的共同接口*/
+			var out = document.getElementById('out14');
+			var Folder = function (name) {
+				this.name = name;
+				this.files = [];
+			};
+			Folder.prototype.add = function (file) {
+				this.files.push(file);
+			};
+			Folder.prototype.scan = function () {
+				out.innerHTML += "扫描文件夹:----" + this.name + "<br>";
+				for (var i = 0, file; file = this.files[i++];) {
+					file.scan();
+				}
+			};
+			var File = function (name) {
+				this.name = name;
+			};
+			File.prototype.add = function () {
+				throw new Error("文件不能添加文件！");
+			};
+			File.prototype.scan = function () {
+				out.innerHTML += "扫描文件：----" + this.name + "<br>";
+			};
+			var folders = new Folder("总文件夹"),
+				i = 0,
+				flen = 0,
+				len;
+			for (i = 0, flen = len = (Math.random() * 5 + 5) >> 0; i < len; i++) {
+				folders.add(new Folder("文件夹" + i));
+			}
+			for (var i = 0, len = (Math.random() * 5 + 5) >> 0; i < len; i++) {
+				(function (i) {
+					folders.add(new File("总文件下的文件：->" + i));
+				}(i));
+			}
+			var folder = null;
+			for (var i = 0, len = (Math.random() * 20 + 5) >> 0; i < len; i++) {
+				folder = folders.files[(Math.random() * flen) >> 0];
+				(function (i) {
+					folder.add(new File(folder.name + "下的文件：->" + i));
+				}(i));
+			};
+			folders.scan();
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra15"></pre>
+		<div class="out" id="out15"></div>
+	</div>
+	<script id="code15" class="code">
+		(function () {
+			/*组合模式，逆向删除某一文件*/
+			var out = document.getElementById('out15');
+			var Folder = function (name) {
+				this.name = name;
+				this.parent = null;
+				this.files = [];
+			};
+			Folder.prototype.add = function (file) {
+				file.parent = this;
+				this.files.push(file);
+			};
+			Folder.prototype.scan = function () {
+				out.innerHTML += "扫描文件夹:----" + this.name + "<br>";
+				for (var i = 0, file; file = this.files[i++];) {
+					file.scan();
+				}
+			};
+			Folder.prototype.remove = function () {
+				if (!this.parent) {
+					return;
+				}
+				for (var files = this.parent.files, len = files.length - 1; len >= 0; len--) {
+					var file = files[len];
+					if (file === this) {
+						files.splice(len, 1);
+					}
+				}
+			};
+			var File = function (name) {
+				this.name = name;
+				this.parent = null;
+			};
+			File.prototype.add = function () {
+				throw new Error("文件不能添加文件！");
+			};
+			File.prototype.scan = function () {
+				out.innerHTML += "扫描文件：----" + this.name + "<br>";
+			};
+			File.prototype.remove = function () {
+				if (!this.parent) {
+					return;
+				}
+				for (var files = this.parent.files, len = files.length - 1; len >= 0; len--) {
+					var file = files[len];
+					if (file === this) {
+						files.splice(len, 1);
+					}
+				}
+			};
+			/*------------------------------*/
+			var folders = new Folder("总文件夹"),
+				i = 0,
+				flen = 0,
+				len;
+			for (i = 0, flen = len = (Math.random() * 5 + 5) >> 0; i < len; i++) {
+				folders.add(new Folder("文件夹" + i));
+			}
+			for (var i = 0, len = (Math.random() * 5 + 1) >> 0; i < len; i++) {
+				(function (i) {
+					folders.add(new File("总文件下的文件：->" + i));
+				}(i));
+			}
+			var folder = null;
+			for (var i = 0, len = (Math.random() * 5 + 1) >> 0; i < len; i++) {
+				folder = folders.files[(Math.random() * flen) >> 0];
+				(function (i) {
+					folder.add(new File(folder.name + "下的文件：->" + i));
+				}(i));
+			};
+			folders.scan();
+			setTimeout(function () {
+				out.innerHTML = "重新扫描..........<br>";
+				folders.files[0].remove();
+				folders.scan();
+			}, 3000);
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra16"></pre>
+		<div class="out" id="out16"></div>
+	</div>
+	<script id="code16" class="code">
+		(function () {
+			/*模板模式--钩子方法-好莱坞原则*/
+			/*钩子方法与好莱坞原则指的的底层的组件的控制全权交给上层，
+			有上层决定，例如基于事件的模式由高层来触发通知，底层更多的是实现上层的抽象细节。*/
+			/*js抽象继承*/
+			var out = document.getElementById('out16');
+			var Beverage = function (param) {
+				/*抽象类已经具体实现的方法*/
+				var boiWater = function () {
+					out.innerHTML += "把水煮开！<br>"
+				};
+				var brew = param.brew || function () {
+					throw new Error('brew 方法为空！');
+				};
+				var pourIncup = param.pourIncup || function () {
+					throw new Error('pourIncup 方法为空！');
+				};
+				var addCondiments = param.addCondiments || function () {
+					throw new Error('addCondiments 方法为空！');
+				};
+				/*isAdd就是一个钩子方法*/
+				var isAdd = param.isAdd || function () {
+					return false;
+				}
+				var addOther = param.addOther || function () {
+					throw new Error('addCondiments 方法为空！');
+				}
+				var F = function () {};
+				F.prototype.init = function () {
+					boiWater();
+					brew();
+					pourIncup();
+					addCondiments();
+					if (isAdd()) {
+						addOther();
+					}
+				};
+				return F;
+			};
+			/*实现的具体类*/
+			var Coffee = Beverage({
+				brew: function () {
+					out.innerHTML += "用沸水泡咖啡<br>"
+				},
+				pourIncup: function () {
+					out.innerHTML += "将咖啡倒进杯子<br>"
+				},
+				addCondiments: function () {
+					out.innerHTML += "加牛奶加糖！<br>"
+				},
+				addOther: function () {
+					out.innerHTML += "加其他的咖啡佐料！<br>";
+				},
+				isAdd: function () {
+					return true;
+				}
+			});
+			var coffee = new Coffee();
+			coffee.init();
+			/*茶水*/
+			var Tea = Beverage({
+				brew: function () {
+					out.innerHTML += "用沸水泡茶<br>"
+				},
+				pourIncup: function () {
+					out.innerHTML += "将茶倒进杯子<br>"
+				},
+				addCondiments: function () {
+					out.innerHTML += "加糖柠檬！<br>"
+				},
+				addOther: function () {
+					out.innerHTML += "加其他的茶添加剂！<br>";
+				}
+			});
+			var tea = new Tea();
+			tea.init();
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra17"></pre>
+		<div class="out" id="out17"></div>
+	</div>
+	<script id="code17" class="code">
+		(function () {
+			/*享元模式，最主要的实践模式是解决性能问题的。*/
+			/*多文件上传*/
+			var out = document.getElementById('out17');
+			var Upload = function (uploadType) {
+				this.uploadType = uploadType;
+			};
+			Upload.prototype.delFile = function (id, uploadMannager) {
+				uploadMannager.setExternalState(id, this);
+				if (this.fileSize < 3000) {
+					return this.dom.parentNode.removeChild(this.dom);
+				}
+				if (window.confirm("确认删除该文件吗？" + this.fileName)) {
+					return this.dom.parentNode.removeChild(this.dom);
+
+				}
+			};
+			/*返回的少数不同的内部对象，内部对象即共享对象，应为少数几个*/
+			var UploadFactory = (function () {
+				var createdFlyWeightObj = {};
+				return {
+					create: function (uploadType) {
+						if (createdFlyWeightObj[uploadType]) {
+							return createdFlyWeightObj[uploadType];
+						}
+						return createdFlyWeightObj[uploadType] = new Upload(uploadType);
+					}
+				};
+			}());
+			/*管理器的作用为将外部状态附加给享元*/
+			var uploadMannager = (function () {
+				/*外部状态的储存列表*/
+				var uploadDatabase = {};
+				return {
+					add: function (id, uploadType, fileName, fileSize) {
+						var flyWeightObj = UploadFactory.create(uploadType);
+						var dom = document.createElement('div');
+						var that = this;
+						dom.innerHTML = "< span>文件名称：" + fileName + ",  文件大小：" + fileSize + "</span>";
+						dom.innerHTML += '<button class="delFile">删除</button>';
+						dom.querySelector('.delFile').onclick = function () {
+							flyWeightObj.delFile(id, that);
+						};
+						out.appendChild(dom);
+						uploadDatabase[id] = {
+							fileName: fileName,
+							fileSize: fileSize,
+							dom: dom
+						};
+						return flyWeightObj;
+					},
+					setExternalState: function (id, flyWeightObj) {
+						var uploadDate = uploadDatabase[id];
+						for (var key in uploadDate) {
+							flyWeightObj[key] = uploadDate[key];
+						}
+					}
+
+				};
+			}());
+
+			var id = 0;
+			var startUpload = function (uploadtype, files) {
+				for (var i = 0, file; file = files[i++];) {
+					var uploadObj = uploadMannager.add(++id, uploadtype, file.fileName, file.fileSize);
+				};
+			};
+			startUpload('plugin', [{
+				fileName: '1.txt',
+				fileSize: 1000
+			}, {
+				fileName: '2.html',
+				fileSize: 2000
+			}, {
+				fileName: '3.zip',
+				fileSize: 3500
+			}]);
+			startUpload('flash', [{
+				fileName: '1.txt',
+				fileSize: 1000
+			}, {
+				fileName: '2.html',
+				fileSize: 2000
+			}, {
+				fileName: '3.zip',
+				fileSize: 3500
+			}]);
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra18"></pre>
+		<div class="out" id="out18"></div>
+	</div>
+	<script id="code18" class="code">
+		(function () {
+			/*对象池实现地图标记*/
+			var out = document.getElementById('out18');
+			/*缓冲池对象*/
+			var toolTipFactory = (function () {
+				var toolTipPool = [];
+				return {
+					create: function () {
+						if (toolTipPool.length === 0) {
+							var span = document.createElement('span');
+							out.appendChild(span);
+							return span;
+						} else {
+							return toolTipPool.shift();
+						}
+					},
+					recover: function (tooltipDom) {
+						return toolTipPool.push(tooltipDom);
+					}
+				}
+			}());
+			var ary = [];
+			for (var i = 0, str; str = ['A', 'B'][i++];) {
+				var toolTip = toolTipFactory.create();
+				toolTip.innerHTML = str;
+				ary.push(toolTip);
+			};
+			for (var i = 0, tooltip; toolTip = ary[i++];) {
+				toolTipFactory.recover(toolTip);
+			};
+			for (var i = 0, str; str = ['A', 'B', 'C', 'D', 'E'][i++];) {
+				var toolTip = toolTipFactory.create();
+				toolTip.innerHTML = str;
+				ary.push(toolTip);
+			};
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra19"></pre>
+		<div class="out" id="out19"></div>
+	</div>
+	<script id="code19" class="code">
+		(function () {
+			/*通用的对象池实现,createfn必须返回一个对象*/
+			var objPoolFactory = function (createfn) {
+					var objPool = [];
+					return {
+						create: function () {
+							var obj = objPool.length === 0 ? createfn.apply(this, arguments) : objPool.shift();
+							return obj;
+						},
+						recover: function (obj) {
+							objPool.push(obj);
+						}
+					};
+				}
+				/*通用享元部件*/
+			var FlyWeightMannager = (function () {
+				var Iternals = {},
+					Externals = {};
+
+				var createFlyWeight = function (mark, FlyWeight) {
+					if (Iternals[mark]) {
+						return Iternals[mark];
+					}
+					return Iternals[mark] = new FlyWeight(mark);
+				};
+				return {
+					add: function (id, mark, FlyWeight, external) {
+						var flyweight = createFlyWeight(mark, FlyWeight);
+						Externals[id] = external;
+						return flyweight;
+					},
+					set: function (id, flyweight) {
+						var extarnal = Externals[id];
+						for (var key in extarnal) {
+							flyweight[key] = extarnal[key];
+						}
+					}
+				};
+			}());
+		}());
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra20"></pre>
+		<div class="out" id="out20"></div>
+	</div>
+	<script id="code20" class="code">
+		(function () {
+			/*职责链模式*/
+			var out = document.getElementById('out20');
+			var order500 = function (type, pay, stock) {
+				if (type === 1 && pay === true) {
+					out.innerHTML += "500元，100元优惠券<br>";
+				} else {
+					return "next";
+				}
+			};
+			var order200 = function (type, pay, stock) {
+				if (type === 2 && pay === true) {
+					out.innerHTML += "200元，50元优惠券<br>";
+				} else {
+					return "next";
+				}
+			};
+			var orderNormal = function (type, pay, stock) {
+				if (stock > 0) {
+					out.innerHTML += "普通购买！<br>";
+				} else {
+					out.innerHTML += "没了<br>";
+				}
+			};
+			var Chan = function (fn) {
+				this.fn = fn;
+				this.successor = null;
+			};
+			Chan.prototype.setNextSuccessor = function (successor) {
+				return this.successor = successor;
+			};
+			Chan.prototype.passRequest = function () {
+				var ret = this.fn.apply(this, arguments);
+				if (ret === "next") {
+					return this.successor && this.successor.passRequest.apply(this.successor, arguments);
+				}
+			};
+			/*异步职责链的实现*/
+			Chan.prototype.next = function () {
+				return this.successor && this.successor.passRequest.apply(this.successor, arguments);
+			}
+			var chan500 = new Chan(order500);
+			var chan200 = new Chan(order200);
+			var chanNormal = new Chan(orderNormal);
+
+			chan500.setNextSuccessor(chan200);
+			chan200.setNextSuccessor(chanNormal);
+
+			chan500.passRequest(1, true, 100);
+			chan500.passRequest(2, true, 100);
+			chan500.passRequest(3, true, 0);
+
+			var chan1 = new Chan(function () {
+				out.innerHTML += "this is 1<br>";
+				return 'next';
+			});
+			var chan2 = new Chan(function () {
+				out.innerHTML += "this is 2<br>";
+				/*this是指向chan对象*/
+				var self = this;
+				setTimeout(function () {
+					self.next();
+				}, 1000);
+			});
+			var chan3 = new Chan(function () {
+				out.innerHTML += 'this is 3<br>';
+			});
+			chan1.setNextSuccessor(chan2).setNextSuccessor(chan3);
+			chan1.passRequest();
+		}());
+	</script>
+	<div class="wrapper">
+		<pre id="codewra21" class="codewra"></pre>
+		<div class="out" id="out21"></div>
+	</div>
+	<script id="code21" class="code">
+		(function () {
+			/*中介者模式，很重要适合游戏角色的创建*/
+			var out = document.getElementById('out21');
+
+			function Player(name, teamColor) {
+				this.name = name;
+				this.teamColor = teamColor;
+				this.state = 'alive';
+			}
+			Player.prototype.win = function () {
+				out.innerHTML += this.name + "win!<br>";
+			};
+			Player.prototype.lose = function () {
+				out.innerHTML += this.name + "lost<br>";
+			};
+			Player.prototype.die = function (playerDirector) {
+				this.state = "dead";
+				playerDirector.ReceiveMessage('playerDead', this);
+			}
+			Player.prototype.remove = function (playerDirector) {
+				playerDirector.ReceiveMessage('removePlayer', this);
+			}
+			Player.prototype.changeTeam = function (playerDirector) {
+				playerDirector.ReceiveMessage('cahngeTeam', this);
+			}
+			var playerDirector = (function () {
+				var players = {},
+					operations = {};
+				operations.addPlayer = function (player) {
+					var teamCole = player.teamColor;
+					players[teamCole] = players[teamCole] || [];
+					players[teamCole].push(player);
+				};
+				operations.removePlayer = function (player) {
+					var teamColor = player.teamColor;
+					var tempPlayers = players[teamColor] || [];
+					for (var i = tempPlayers.length - 1; i >= 0; i--) {
+						if (tempPlayers[i] === player) {
+							tempPlayers.splice(i, 1);
+						}
+					}
+				};
+				operations.changeTeam = function (player, newColor) {
+					operations.removePlayer(player);
+					player.teamColor = newColor;
+					operations.addPlayer(player);
+				};
+				operations.playerDead = function (player) {
+					var teamColor = player.teamColor,
+						tempPlayers = players[teamColor];
+					var all_dead = true;
+					for (var i = 0, player; player = tempPlayers[i++];) {
+						if (player.state !== "dead") {
+							all_dead = false;
+							break;
+						}
+					}
+					if (all_dead === true) {
+						for (var i = 0, player; player = tempPlayers[i++];) {
+							player.lose();
+						}
+						for (var colr in players) {
+							if (colr !== teamColor) {
+								var tempPlayers = players[colr];
+								for (var i = 0, player; player = tempPlayers[i++];) {
+									player.win();
+								}
+							}
+						}
+					}
+				};
+				var ReceiveMessage = function () {
+					var msg = Array.prototype.shift.call(arguments);
+					operations[msg].apply(this, arguments);
+				};
+				return {
+					ReceiveMessage: ReceiveMessage
+				}
+			}());
+
+			/*玩家工厂*/
+			var playerFactory = function (name, teamColor) {
+				var player = new Player(name, teamColor);
+				playerDirector.ReceiveMessage('addPlayer', player);
+				return player;
+			};
+			/*测试-----*/
+			var player1 = playerFactory('1', 'red'),
+				player2 = playerFactory('2', 'red'),
+				player3 = playerFactory('3', 'red');
+			var player4 = playerFactory('4', 'blue'),
+				player5 = playerFactory('5', 'blue'),
+				player6 = playerFactory('6', 'blue');
+			player1.die(playerDirector);
+			player2.die(playerDirector);
+			player3.die(playerDirector);
+		}());
+	</script>
+	<div class="wrapper">
+		<pre id="codewra22" class="codewra"></pre>
+		<div class="out" id="out22"></div>
+	</div>
+	<script id="code22" class="code">
+		(function () {
+			/*装饰者模式*/
+			var out = document.getElementById('out22');
+			Function.prototype.after = function (afterfn) {
+				var _self = this;
+				return function () {
+					var ret = _self.apply(this, arguments);
+					afterfn.apply(this, arguments);
+					return ret;
+				}
+			}
+			var one = function (param) {
+				out.innerHTML += 'this is 1th fun; arguments is:' + param.name + '<br>';
+				console.log(param);
+				param.name = 'this other name';
+				console.log(param);
+
+			};
+			var two = function (param) {
+				console.log(param);
+
+				out.innerHTML += 'this is 2th fun; arguments is:' + param.name + '<br>';
+
+			}
+			one = one.after(two);
+			one({name:"this is test"});
+		}());
+	</script>
+	<script src="./tagColoring.js">
+	</script>
+</body>
+
+</html>

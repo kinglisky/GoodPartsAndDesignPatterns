@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+	<meta charset="UTF-8">
+	<title>javascript语言精粹</title>
+</head>
+<style>
+	* {
+		padding: 0;
+		margin: 0;
+	}
+
+	html {
+		width: 100%;
+		height: 100%;
+	}
+
+	body {
+		width: 95%;
+		margin: 3% auto;
+		font-family: "YouYuan";
+		line-height: 2em;
+		font-size: 14px;
+	}
+
+	h1 {
+		margin: 2% auto;
+	}
+</style>
+<link rel="stylesheet" href="./tagColoring.css">
+
+<body>
+	<h1>javascript语言精粹</h1>
+	<hr>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra1">
+
+        </pre>
+		<div id="out1" class="out"></div>
+	</div>
+	<script class="code" id="code1">
+		(function () {
+			/*apply调用*/
+			var out = document.getElementById('out1');
+			var add = function () {
+				var sum = 0;
+				for (var i = 0, len = arguments.length; i < len; i++) {
+					sum += arguments[i];
+				}
+				return sum;
+			}
+			var arr = [1, 2, 3, 4, 5];
+			out.innerHTML = "the result:" + add.apply(null, arr);
+		})();
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra2">
+ </pre>
+		<div id="out2" class="out"></div>
+		<script class="code" id="code2">
+			(function () {
+				/*异常*/
+				var out = document.getElementById('out2');
+				var add = function (a, b) {
+					if (typeof a !== 'number' || typeof b !== 'number') {
+						throw {
+							name: '参数类型错误',
+							message: '传入的参数必须是数字'
+						};
+					}
+					return a + b;
+				}
+				var tryit = function () {
+					try {
+						add('test');
+					} catch (e) {
+						out.innerHTML = 'the errorname:' + e.name + ' errortype:' + e.message;
+					}
+				}
+				tryit();
+			})();
+		</script>
+	</div>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra3">
+        </pre>
+		<div id="out3" class="out"></div>
+		<script class="code" id="code3">
+			(function () {
+				/*扩展类型功能*/
+				var out = document.getElementById('out3');
+				Function.prototype.method = function (name, func) {
+					this.prototype[name] = (!!!this.prototype[name]) && func || null;
+					return this;
+				}
+				Number.method('integer', function () {
+					return Math[this < 0 ? 'ceil' : 'floor'](this);
+				});
+				out.innerHTML = 'the number integer is:' + (-10 / 3).integer();
+			})();
+		</script>
+	</div>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra4">
+        </pre>
+		<div id="out4" class="out"></div>
+		<script class="code" id="code4">
+			(function () {
+				/*递归函数*/
+				var out = document.getElementById('out4');
+				var godom = function (node, func) {
+					func(node);
+					node = node.firstChild;
+					while (!!node) {
+						godom(node, func);
+						node = node.nextSibling;
+					}
+				}
+				var result = [];
+				godom(document.body, function (node) {
+					node.nodeType === 1 && result.push(node.tagName);
+				});
+				var msg = '';
+				for (var i = 0; i < result.length; i++) {
+					msg += 'tagNmae:' + result[i] + ' <br>';
+				}
+				out.innerHTML = msg;
+			})();
+		</script>
+	</div>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra5"></pre>
+		<div id="out5" class="out"></div>
+	</div>
+	<script class="code" id="code5">
+		var out = document.getElementById('out5');
+		(function () {
+			/*闭包*/
+			/*立即调用式函数,不用再做函数调用*/
+			var myobj = (function () {
+				var myname = '';
+				return {
+					getname: function () {
+						return myname || 'no name';
+					},
+					setname: function (newname) {
+						myname = newname;
+					}
+				}
+			}());
+			myobj.setname('kingli');
+			out.innerHTML = 'my name is:' + myobj.getname();
+		})();
+		/*-----------------------------------------------------------------*/
+		(function () {
+			/*不带new语句的构造函数*/
+			var quo = function (status) {
+				return {
+					get_ststus: function () {
+						return status || 'hava no';
+					}
+				}
+			}
+			var test = quo('nan');
+			out.innerHTML = out.textContent + "<br> the result is:" + test.get_ststus();
+		})();
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra6"></pre>
+		<div id="out6" class="out"></div>
+	</div>
+	<script class="code" id="code6">
+		(function () {
+			/*模块*/
+			var out = document.getElementById('out6');
+			String.method('deentityify', function () {
+				var entity = {
+					quot: '"',
+					lt: '<',
+					gt: '>'
+				};
+				return this.replace(/&([^&;]+);/g, function (a, b) {
+					var r = entity[b];
+					return typeof r === 'string' ? r : a;
+				});
+			});
+			out.innerHTML = 'the result for &lt;&gt;&quot;:'.deentityify();
+		})();
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra7"></pre>
+		<div id="out7" class="out"></div>
+	</div>
+	<script class="code" id="code7">
+		/*级联*/
+		/*---------------------------------------------------------------*/
+		/*函数柯里化*/
+		var out = document.getElementById('out7');
+		/*为函数添加curry方法，实现柯里化*/
+		Function.method('curry', function () {
+			/*获取对原函数的参数与this引用*/
+			var slice = Array.prototype.slice,
+				/*因为arguments并不是一个真正的数组，所以先得转化*/
+				args = slice.apply(arguments),
+				that = this;
+			return function () {
+				/*将两个参数数组拼接正成一个参数数组*/
+				return that.apply(null, args.concat(slice.apply(arguments)));
+			}
+
+		});
+		var add = function (a, b) {
+			return (a || 0) + (b || 0);
+		}
+		var addCurry = add.curry(1);
+		out.innerHTML = 'add(1):' + add(1) + '<br>var addCurry = add.curry(1);<br>addCurry(1):' + addCurry(1);
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra8"></pre>
+		<div id="out8" class="out"></div>
+	</div>
+	<script class="code" id="code8">
+		var out = document.getElementById('out8');
+		(function () {
+			/*函数记忆*/
+			/*斐波那契数组计算*/
+			var fibonacci = function (n) {
+					return n < 2 ? n : (fibonacci(n - 1) + fibonacci(n - 2));
+				}
+				/*低效率计算：*/
+			var result = '';
+			for (var i = 0; i < 10; i++) {
+				result += 'the:' + i + ':' + fibonacci(i) + '<br>';
+			}
+			out.innerHTML = result;
+			/*高效率版本*/
+			var fib = function () {
+				var memo = [0, 1];
+				var infib = function (n) {
+					var resu = memo[n];
+					return resu = (typeof resu !== 'number') && (memo[n] = resu = infib(n - 1) + fib(n - 2)) || resu;
+				}
+				return infib;
+			}();
+			result = '';
+			for (var i = 0; i < 10; i++) {
+				result += 'the:' + i + ':' + fib(i) + '<br>';
+			}
+			out.innerHTML = result;
+		})();
+		/*---------------------------------------------------------*/
+		(function () {
+			/*通用函数,memo为数组，formula为函数*/
+			var memoizer = function (memo, formula) {
+					var recur = function (n) {
+						var result = memo[n];
+						/*先判断是否在记忆的数组中，如有新项进来添加进数组*/
+						return result = (typeof result !== 'number') && (memo[n] = result = formula(recur, n)) || result;
+					}
+					return recur;
+				}
+				/*斐波那契函数实现*/
+			var fib = memoizer([0, 1], function (recur, n) {
+				return recur(n - 1) + recur(n - 2);
+			});
+			/*阶乘实现*/
+			var fac = memoizer([1, 1], function (recur, n) {
+				return n * recur(n - 1)
+			});
+			var result = '';
+			for (var i = 0; i < 10; i++) {
+				result += 'the:' + i + ':' + fac(i) + '<br>';
+			}
+			out.innerHTML = result;
+		})();
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra9"></pre>
+		<div id="out9" class="out"></div>
+	</div>
+	<script class="code" id="code9">
+		(function () {
+			/*原型继承*/
+			var out = document.getElementById('out9');
+			/*为object添加create方法*/
+			Object.create = function (o) {
+				var F = function () {};
+				F.prototype = o;
+				return new F();
+			};
+			/*父类*/
+			var superclass = {
+				name: 'super class',
+				get_name: function () {
+					return this.name;
+				},
+				do_someting: function () {
+					return this.someing || 'no someing';
+				}
+			};
+			/*子类*/
+			var son = Object.create(superclass);
+			son.name = 'son class';
+			son.someing = 'what the fuck';
+			/*js有一条原型连，属性的查找由子类向父类查找*/
+			out.innerHTML = son.get_name() + '---' + son.do_someting();
+			/*缺点不可保护私有对象*/
+		})();
+	</script>
+	<div class="wrapper">
+		<pre class="codewra" id="codewra10"></pre>
+		<div id="out10" class="out"></div>
+	</div>
+	<script class="code" id="code10">
+		(function () {
+			/*函数化*/
+			var out = document.getElementById('out10');
+			/*处理父类函数的方法*/
+			Object.method('superior', function (name) {
+				var that = this,
+					method = that[name];
+				return function () {
+					return method.apply(that, arguments);
+				};
+			});
+			var mammal = function (spec) {
+				/*私有对象的封装，只有通过that的方法才能访问到spec的属性与直*/
+				var that = {};
+				that.get_name = function () {
+					return spec.name;
+				}
+				that.says = function () {
+					return spec.saying || 'no say';
+				}
+				return that;
+			}
+			var myMammal = mammal({
+				"name": "nan",
+				"saying": "有的鱼是永远关不住的，因为他们属于天空!"
+			});
+			/*系类只需要专注自身的差异就行了*/
+			myMammal.domyself = function () {
+				return 'go to free';
+			}
+			out.innerHTML = myMammal.get_name() + ' say:' + myMammal.says() + ' ' + myMammal.domyself();
+
+			var getname = myMammal.superior('get_name');
+			out.innerHTML += ('<br>the super name:' + getname());
+		})();
+	</script>
+	<div class="wrapper">
+		<pre id="codewra11" class="codewra"></pre>
+		<div class="out" id="out11"></div>
+	</div>
+	<script id="code11" class="code">
+		(function () {
+			var out = document.getElementById('out11');
+			/*部件*/
+			/*自定义事件*/
+			var eventuality = function (that) {
+				/*事件注册用的*/
+				/*registy是用于存储事件的属性的*/
+				var registy = {};
+				/*on方法用于事件的注册,type为自定义事件类型,method为事件处理函数，
+				parameters为传递的参数数组（注意是数组）*/
+				that.on = function (type, method, parameters) {
+						var handler = {
+							"method": method,
+							"parameters": parameters
+						};
+						/*如果已经注册type类型的事件，则王type属性的事件数组添加对应事件监听函数，
+						否则建立新事件类型的数组存储监听事件*/
+						if (registy.hasOwnProperty(type)) {
+							registy[type].push(handler);
+						} else {
+							registy[type] = [handler];
+						}
+						/*可以写成级联的方式*/
+						return this;
+					}
+					/*fire方法用于事件的触发*/
+				that.fire = function (event) {
+					var array,
+						func,
+						handler,
+						i,
+						len,
+						type = typeof event === 'string' ? event : event.type;
+					/*先判断监听的事件类型type是否位于注册的对象registy中*/
+					if (registy.hasOwnProperty(type)) {
+						/*取出对应type事件处理函数数组，遍历依次执行*/
+						array = registy[type];
+						for (i = 0, len = array.length; i < len; i++) {
+							handler = array[i];
+							func = handler.method;
+							if (typeof func === 'string') {
+								func = this[func];
+							}
+							func.apply(this, handler.parameters || [event]);
+						}
+
+					}
+					return this;
+				};
+				return that;
+			};
+			out = eventuality(out);
+			var outmsg = function (msg) {
+				this.innerHTML = msg;
+			}
+			out.on('out', outmsg, ['for time is short']);
+			out.fire('out');
+		})();
+	</script>
+	<div class="wrapper">
+		<pre id="codewra12" class="codewra"></pre>
+		<div class="out" id="out12"></div>
+	</div>
+	<script id="code12" class="code">
+		(function () {
+			var out = document.getElementById('out12');
+			/*部件*/
+			/*自定义事件*/
+			var eventuality = function (that) {
+				/*事件注册用的*/
+				/*registy是用于存储事件的属性的*/
+				var registy = {};
+				/*on方法用于事件的注册,type为自定义事件类型,method为事件处理函数，
+				parameters为传递的参数数组（注意是数组）*/
+				that.on = function (type, method) {
+						/*如果已经注册type类型的事件，则王type属性的事件数组添加对应事件监听函数，
+						否则建立新事件类型的数组存储监听事件*/
+						if (registy.hasOwnProperty(type)) {
+							registy[type].push(method);
+						} else {
+							registy[type] = [method];
+						}
+						/*可以写成级联的方式*/
+						return this;
+					}
+					/*fire方法用于事件的触发*/
+				that.fire = function (event) {
+					var array,
+						func,
+						i,
+						len,
+						type = typeof event === 'string' ? event : event.type;
+					/*先判断监听的事件类型type是否位于注册的对象registy中*/
+					if (registy.hasOwnProperty(type)) {
+						/*取出对应type事件处理函数数组，遍历依次执行*/
+						array = registy[type];
+						for (i = 0, len = array.length; i < len; i++) {
+							func = array[i];
+							if (typeof func === 'string') {
+								func = this[func];
+							}
+							func.apply(this, event.parameters);
+						}
+
+					}
+					return this;
+				};
+				return that;
+			};
+			out = eventuality(out);
+			out.on('out', function (msg) {
+				this.innerHTML = msg;
+			});
+			out.on('out', function () {
+				this.innerHTML += ' tiis is add';
+			});
+			out.fire({
+				"type": "out",
+				"parameters": ['青鲤锦时']
+			});
+		})();
+	</script>
+	<div class="wrapper">
+		<pre id="codewra13" class="codewra"></pre>
+		<div class="out" id="out13"></div>
+	</div>
+	<script id="code13" class="code">
+		(function () {
+			/*位操纵，查找表*/
+			var out = document.getElementById("out13");
+			var findTables = [{
+				flags: 128,
+				des: "大型"
+			}, {
+				flags: 64,
+				des: "中型"
+			}, {
+				flags: 32,
+				des: "小型"
+			}, {
+				flags: 16,
+				des: "年老"
+			}, {
+				flags: 8,
+				des: "棕色"
+			}, {
+				flags: 4,
+				des: "白色"
+			}, {
+				flags: 2,
+				des: "狗"
+			}, {
+				flags: 1,
+				des: "猫"
+			}];
+			var seachFlages = 1;
+			for (var i = 0, len = findTables.length; i < len; i++) {
+				if (seachFlages & findTables[i].flags === seachFlages) {
+					out.innerHTML = "find one:flages:" + findTables[i].flags + " des:" + findTables[i].des + "<br>";
+				}
+			}
+		}());
+	</script>
+	<div class="wrapper">
+		<pre id="codewra14" class="codewra"></pre>
+		<div class="out" id="out14"></div>
+	</div>
+	<script id="code14" class="code">
+		(function () {
+			/*达夫设备*/
+			var out = document.getElementById("out14");
+			var baseArr = [];
+			var doSoming = function (item) {
+				return item ^= 1;
+			}
+			for (var i = 0; i < 100000; i++) {
+				baseArr[i] = i;
+			}
+			console.log(baseArr);
+			var timeOn = 0,
+				timeEnd = 0;
+			var arrLen = baseArr.length;
+			/*for循环*/
+			console.time("for");
+			timeOn = +new Date();
+			for (var i = 0; i < arrLen; i++) {
+				baseArr[i] = doSoming(baseArr[i]);
+			}
+			timeEnd = +new Date();
+			console.timeEnd("for");
+			out.innerHTML = "for循环用时：" + (timeEnd - timeOn) + "ms";
+			console.log(baseArr);
+
+			/*forEach*/
+			console.time("forEach");
+			timeOn = +new Date();
+			baseArr.forEach(function (item, index, arr) {
+				baseArr[index] = doSoming(item);
+			});
+			timeEnd = +new Date();
+			console.timeEnd("forEach");
+			out.innerHTML += "<br>forEach循环用时：" + (timeEnd - timeOn) + "ms";
+			console.log(baseArr);
+
+
+			/*达夫设备*/
+			var duff = function (arr, handle) {
+				var mark = 0,
+					arrLen = arr.length,
+					n = arrLen >> 3;
+				while (n--) {
+					arr[mark] = handle(arr[mark++]);
+					arr[mark] = handle(arr[mark++]);
+					arr[mark] = handle(arr[mark++]);
+					arr[mark] = handle(arr[mark++]);
+					arr[mark] = handle(arr[mark++]);
+					arr[mark] = handle(arr[mark++]);
+					arr[mark] = handle(arr[mark++]);
+					arr[mark] = handle(arr[mark++]);
+
+				}
+				n = arrLen - mark;
+				while (n--) {
+					arr[mark] = handle(arr[mark++]);
+
+				}
+			}
+			console.time("duff");
+			timeOn = +new Date();
+			duff(baseArr, doSoming);
+			timeEnd = +new Date();
+			console.timeEnd("duff");
+			out.innerHTML += "<br>duff循环用时：" + (timeEnd - timeOn) + "ms";
+			console.log(baseArr);
+		}());
+	</script>
+	<div class="wrapper">
+		<pre id="codewra15" class="codewra"></pre>
+		<div class="out" id="out15"></div>
+	</div>
+	<script id="code15" class="code">
+		(function () {
+			/*闭包的使用*/
+			var out = document.getElementById("out15");
+			var Type = function () {
+				var checkTypes = ["String", "Array", "Number", "Function", "Null", "Undefined", "Date", "RegExp", "Boolean", "Object"];
+				this["isNaN"] = function (obj) {
+					return obj !== obj;
+				};
+				for (var i = 0, type; type = checkTypes[i++];) {
+					(function (type) {
+						this["is" + type] = function (obj) {
+							return Object.prototype.toString.call(obj) === '[object ' + type + ']';
+						}
+					}(type));
+				}
+				return this;
+			}
+			var T = Type();
+			var a, b = NaN;
+			out.innerHTML += T.isNumber(5) + "<br>";
+			out.innerHTML += T.isString("hehe") + "<br>";
+			out.innerHTML += T.isArray([]) + "<br>";
+			out.innerHTML += T.isFunction(Type) + "<br>";
+			out.innerHTML += T.isNull(null) + "<br>";
+			out.innerHTML += T.isUndefined(a) + "<br>";
+			out.innerHTML += T.isNaN(b) + "<br>";
+			out.innerHTML += T.isDate(new Date()) + "<br>";
+			out.innerHTML += T.isRegExp(/^$/) + "<br>";
+			out.innerHTML += T.isBoolean(false) + "<br>";
+		}());
+	</script>
+	<div class="wrapper">
+		<pre id="codewra16" class="codewra"></pre>
+		<div class="out" id="out16"></div>
+	</div>
+	<script id="code16" class="code">
+		(function () {
+			/*AOP实现，装饰者模式*/
+			var out = document.getElementById("out16");
+			Function.prototype.before = function (beforefn) {
+				var self = this;
+				return function () {
+					beforefn.apply(this, arguments);
+					return self.apply(this, arguments);
+				}
+			}
+			Function.prototype.after = function (afterfn) {
+				var self = this;
+				return function () {
+					/*self实际上保留有对before返回函数的引用*/
+					var ret = self.apply(this, arguments);
+					afterfn.apply(this, arguments);
+					return ret;
+				}
+			}
+			var fun2 = function () {
+				out.innerHTML += 2 + "<br>";
+			}
+			var func = fun2.before(function () {
+				out.innerHTML += 1 + "<br>";
+			}).after(function () {
+				out.innerHTML += 3 + "<br>"
+			});
+			func();
+		}());
+	</script>
+	<div class="wrapper">
+		<pre id="codewra17" class="codewra"></pre>
+		<div class="out" id="out17"></div>
+	</div>
+	<script id="code17" class="code">
+		(function () {
+			/*uncurrying反柯里化*/
+			var out = document.getElementById('out17');
+			/*泛化函数方法，可以借函数中已经存在的方法方法来产生适合所有对象的方法*/
+			/*Function.prototype.uncurrying = function () {
+				var self = this;
+				return function () {
+					var obj = Array.prototype.shift.call(arguments);
+					return self.apply(obj, arguments);
+				};
+			};*/
+			/*另一种形式*/
+			Function.prototype.uncurrying = function () {
+				var self = this;
+				return function () {
+					return Function.prototype.call.apply(self, arguments);
+				};
+			};
+			/*伪装的数组对象，包装通用于所有对象的数组方法*/
+			var DArrry = (function () {
+				var DArr = {},
+					/*还可以添加数组的其他方法*/
+					arrmethods = ["push", "shift", "forEach"];
+				for (var i = 0, fn; fn = arrmethods[i++];) {
+					DArr[fn] = Array.prototype[fn].uncurrying();
+				}
+				return DArr;
+			}());
+			var obj = {
+				"0": 0,
+				"1": 1,
+				"2": 2,
+				"length": 3
+			};
+			out.innerHTML += obj.length + "<br>";
+			DArrry.push(obj, 3);
+			out.innerHTML += obj.length + "<br>";
+
+		}());
+	</script>
+	<div class="wrapper">
+		<pre id="codewra18" class="codewra"></pre>
+		<div class="out" id="out18"></div>
+	</div>
+	<script id="code18" class="code">
+		(function () {
+			/*函数截流*/
+			var out = document.getElementById("out18");
+			var throttle = function (fn, interval) {
+					// 保存需要存放的执行函数
+					var self = fn,
+						// 定时器
+						timer,
+						// 是否第一次调用
+						firstTime = true;
+					return function () {
+						var args = arguments,
+							me = this;
+						if (firstTime) {
+							self.apply(me, args);
+							/*return终止事件执行*/
+							return firstTime = false;
+						}
+						if (timer) {
+							/*return终止事件执行*/
+							return false;
+						}
+						timer = setTimeout(function () {
+							clearTimeout(timer);
+							timer = null;
+							self.apply(me, args);
+						}, interval || 500);
+					};
+				}
+				/*改变窗口大小时触发*/
+			window.onresize = throttle(function () {
+				out.innerHTML += new Date() + "<br>";
+			}, 5000);
+
+		}());
+	</script>
+	<div class="wrapper">
+		<pre id="codewra19" class="codewra"></pre>
+		<div class="out" id="out19"></div>
+	</div>
+	<script id="code19" class="code">
+		(function () {
+			/*分时函数*/
+			var out = document.getElementById("out19");
+			/*参数，数据数组，函数，分组长度，时间间隔*/
+			var timeChunk = function (ary, fn, count, interval) {
+				var obj,
+					t;
+				var len = ary.length;
+				interval = interval || 200;
+				var start = function () {
+					/*当数组较长时，选用count长度为一组，当数组长度比count小时
+					选用数组的长度*/
+					for (var i = 0; i < Math.min(count || 1, ary.length); i++) {
+						var obj = ary.shift();
+						fn(obj);
+					}
+				};
+				return function () {
+					t = setInterval(function () {
+						if (ary.length === 0) {
+							return clearInterval(t);
+						}
+						start();
+					}, interval);
+				}
+			};
+			var arr = [];
+			for (var i = 0; i <= 100; i++) {
+				arr.push(i);
+			}
+			var tryfun = timeChunk(arr, function (n) {
+				out.innerHTML = n;
+			}, 8, 2000);
+			tryfun();
+		}());
+	</script>
+	<div class="wrapper">
+		<pre id="codewra20" class="codewra"></pre>
+		<div class="out" id="out20"></div>
+	</div>
+	<script id="code20" class="code">
+		(function(){
+			/*惰性加载*/
+			var addEvent=function(elem,type,handler){
+				if(window.addEventListener){
+					/*改变了addEvent的引用*/
+					addEvent=function(elem,type,handler){
+						elem.addEventListener(type,handler);
+					}
+				}
+				else if(window.attachEvent){
+					addEvent=function(elem,type,handler){
+						elem.attachEvent('on'+type,handler);
+
+					}
+				}
+				addEvent(elem,type,handler);
+			};
+			var out=document.getElementById('out20');
+			addEvent(out,'click',function(event){
+				out.innerHTML="on click!";
+			});
+		}())
+	</script>
+
+
+	<script src="./tagColoring.js">
+	</script>
+</body>
+
+</html>
