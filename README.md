@@ -8,4 +8,4 @@
 
 **[javascript 设计模式第一部分](http://kinglisky.github.io/GoodPartsAndDesignPatterns/desingMode0.html)**
 
-**[javascript 设计模式第二部分](http://kinglisky.github.io/GoodPartsAndDesignPatterns/desingMode0.html)**
+**[javascript 设计模式第二部分](http://kinglisky.github.io/GoodPartsAndDesignPatterns/desingMode1.html)**
